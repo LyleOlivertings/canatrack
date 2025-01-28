@@ -1,85 +1,67 @@
-import fs from 'fs';
-import path from 'path';
+import dbConnect from '@/lib/db';
 import Plant from '../../models/Plant';
+import { format } from 'date-fns';
 
-const dataFilePath = path.join(process.cwd(), 'data', 'plants.json');
+export default async function handler(req, res) {
+  await dbConnect();
 
-// Helper function to read plants from the JSON file
-const readPlants = () => {
-  const data = fs.readFileSync(dataFilePath, 'utf-8');
-  return JSON.parse(data);
-};
-
-// Helper function to write plants to the JSON file
-const writePlants = (plants) => {
-  fs.writeFileSync(dataFilePath, JSON.stringify(plants, null, 2));
-};
-
-export default function handler(req, res) {
   if (req.method === 'GET') {
-    // Read and return all plants
-    const plants = readPlants();
-    res.status(200).json(plants);
+    try {
+      const plants = await Plant.find();
+
+      const formattedPlants = plants.map((plant) => ({
+        ...plant.toObject(),
+        plantingDate: format(new Date(plant.plantingDate), 'dd MMMM yyyy'), // Format planting date
+      }));
+
+      res.status(200).json(formattedPlants);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching plants', error });
+    }
   } else if (req.method === 'POST') {
-    // Create a new plant
-    const plants = readPlants();
-    const newPlant = new Plant(
-      Date.now(), // Unique ID
-      req.body.name,
-      req.body.strain,
-      req.body.plantingDate,
-      req.body.stage,
-      req.body.notes
-    );
+    try {
+      const { name, strain, plantingDate, stage, notes } = req.body;
 
-    // Validate the new plant
-    if (!newPlant.isValid()) {
-      return res.status(400).json({ message: 'Invalid plant data' });
+      const newPlant = new Plant({
+        name,
+        strain,
+        plantingDate: new Date(plantingDate), // Ensure valid date
+        stage,
+        notes,
+      });
+
+      await newPlant.save();
+      res.status(201).json(newPlant);
+    } catch (error) {
+      res.status(400).json({ message: 'Error creating plant', error });
     }
-
-    plants.push(newPlant);
-    writePlants(plants);
-    res.status(201).json(newPlant);
   } else if (req.method === 'PUT') {
-    // Update an existing plant
-    const plants = readPlants();
-    const updatedPlant = req.body;
+    try {
+      const { id, name, strain, plantingDate, stage, notes } = req.body;
 
-    // Find the plant by ID
-    const index = plants.findIndex((plant) => plant.id === updatedPlant.id);
-    if (index === -1) {
-      return res.status(404).json({ message: 'Plant not found' });
+      const updatedPlant = await Plant.findByIdAndUpdate(
+        id,
+        { name, strain, plantingDate: new Date(plantingDate), stage, notes },
+        { new: true }
+      );
+
+      if (!updatedPlant) return res.status(404).json({ message: 'Plant not found' });
+
+      res.status(200).json(updatedPlant);
+    } catch (error) {
+      res.status(400).json({ message: 'Error updating plant', error });
     }
-
-    // Validate the updated plant
-    const plant = new Plant(
-      updatedPlant.id,
-      updatedPlant.name,
-      updatedPlant.strain,
-      updatedPlant.plantingDate,
-      updatedPlant.stage,
-      updatedPlant.notes
-    );
-    if (!plant.isValid()) {
-      return res.status(400).json({ message: 'Invalid plant data' });
-    }
-
-    plants[index] = plant;
-    writePlants(plants);
-    res.status(200).json(plant);
   } else if (req.method === 'DELETE') {
-    // Delete a plant
-    const plants = readPlants();
-    const plantId = parseInt(req.query.id);
+    try {
+      const { id } = req.query;
 
-    // Filter out the plant to delete
-    const filteredPlants = plants.filter((plant) => plant.id !== plantId);
-    if (filteredPlants.length === plants.length) {
-      return res.status(404).json({ message: 'Plant not found' });
+      const deletedPlant = await Plant.findByIdAndDelete(id);
+      if (!deletedPlant) return res.status(404).json({ message: 'Plant not found' });
+
+      res.status(200).json({ message: 'Plant deleted' });
+    } catch (error) {
+      res.status(400).json({ message: 'Error deleting plant', error });
     }
-
-    writePlants(filteredPlants);
-    res.status(200).json({ message: 'Plant deleted' });
   } else {
     res.status(405).json({ message: 'Method not allowed' });
   }

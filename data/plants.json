@@ -1,10 +1,18 @@
 [
   {
-    "id": 1738053832744,
-    "name": "Plant 1",
-    "strain": "Daggafontein",
+    "id": 1738061028065,
+    "name": "Plant 1 ",
+    "strain": "Daggafontein ",
     "plantingDate": "2025-01-28",
     "stage": "Seedling",
-    "notes": "Wating on water "
+    "notes": "Waiting on gear "
+  },
+  {
+    "id": 1738061174474,
+    "name": "Plant 2 ",
+    "strain": "Chemical Monster ",
+    "plantingDate": "2025-01-28",
+    "stage": "Seedling",
+    "notes": "Fem also not out yet waiting on gear "
   }
 ]

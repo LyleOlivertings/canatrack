@@ -7,108 +7,127 @@ export default function Home() {
   const [plantingDate, setPlantingDate] = useState('');
   const [stage, setStage] = useState('Seedling');
   const [notes, setNotes] = useState('');
+  const [editPlantId, setEditPlantId] = useState(null);
 
   useEffect(() => {
-    fetch('/api/plants')
-      .then((res) => res.json())
-      .then((data) => setPlants(data));
+    fetchPlants();
   }, []);
 
-  const addPlant = async () => {
+  const fetchPlants = async () => {
+    const response = await fetch('/api/plants');
+    const data = await response.json();
+    setPlants(data);
+  };
+
+  const addOrUpdatePlant = async () => {
+    const method = editPlantId ? 'PUT' : 'POST';
+    const body = {
+      id: editPlantId,
+      name,
+      strain,
+      plantingDate,
+      stage,
+      notes,
+    };
+
     const response = await fetch('/api/plants', {
-      method: 'POST',
+      method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, strain, plantingDate, stage, notes }),
+      body: JSON.stringify(body),
     });
-    const newPlant = await response.json();
-    setPlants([...plants, newPlant]);
+
+    if (response.ok) {
+      await fetchPlants();
+      resetForm();
+    }
+  };
+
+  const deletePlant = async (id) => {
+    await fetch(`/api/plants?id=${id}`, { method: 'DELETE' });
+    fetchPlants();
+  };
+
+  const resetForm = () => {
     setName('');
     setStrain('');
     setPlantingDate('');
     setStage('Seedling');
     setNotes('');
+    setEditPlantId(null);
+  };
+
+  const handleEdit = (plant) => {
+    setName(plant.name);
+    setStrain(plant.strain);
+    setPlantingDate(plant.plantingDate); // Already formatted
+    setStage(plant.stage);
+    setNotes(plant.notes);
+    setEditPlantId(plant._id);
   };
 
   return (
-    <div className="min-h-screen bg-green-theme-100 p-8">
+    <div className="min-h-screen bg-green-100 p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-green-theme-900 mb-8">
-          🌱 My Cannabis Plants
-        </h1>
+        <h1 className="text-4xl font-bold mb-8">🌱 My Plants</h1>
+        <form className="bg-white p-6 rounded shadow-md mb-8 space-y-4">
+          <h2 className="text-2xl font-semibold">{editPlantId ? 'Edit Plant' : 'Add a New Plant'}</h2>
+          <input
+            type="text"
+            placeholder="Plant Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full p-2 border rounded"
+          />
+          <input
+            type="text"
+            placeholder="Strain"
+            value={strain}
+            onChange={(e) => setStrain(e.target.value)}
+            className="w-full p-2 border rounded"
+          />
+          <input
+            type="date"
+            value={plantingDate}
+            onChange={(e) => setPlantingDate(e.target.value)}
+            className="w-full p-2 border rounded"
+          />
+          <select
+            value={stage}
+            onChange={(e) => setStage(e.target.value)}
+            className="w-full p-2 border rounded"
+          >
+            <option value="Seedling">Seedling</option>
+            <option value="Vegetative">Vegetative</option>
+            <option value="Flowering">Flowering</option>
+            <option value="Harvested">Harvested</option>
+          </select>
+          <textarea
+            placeholder="Notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            className="w-full p-2 border rounded"
+          />
+          <button
+            type="button"
+            onClick={addOrUpdatePlant}
+            className="w-full bg-green-500 text-white p-2 rounded"
+          >
+            {editPlantId ? 'Update Plant' : 'Add Plant'}
+          </button>
+        </form>
 
-        {/* Add Plant Form */}
-        <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-          <h2 className="text-2xl font-semibold text-green-theme-800 mb-4">
-            Add a New Plant
-          </h2>
-          <div className="space-y-4">
-            <input
-              type="text"
-              placeholder="Plant Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full p-2 border border-green-theme-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-theme-500"
-            />
-            <input
-              type="text"
-              placeholder="Strain"
-              value={strain}
-              onChange={(e) => setStrain(e.target.value)}
-              className="w-full p-2 border border-green-theme-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-theme-500"
-            />
-            <input
-              type="date"
-              value={plantingDate}
-              onChange={(e) => setPlantingDate(e.target.value)}
-              className="w-full p-2 border border-green-theme-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-theme-500"
-            />
-            <select
-              value={stage}
-              onChange={(e) => setStage(e.target.value)}
-              className="w-full p-2 border border-green-theme-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-theme-500"
-            >
-              <option value="Seedling">Seedling</option>
-              <option value="Vegetative">Vegetative</option>
-              <option value="Flowering">Flowering</option>
-              <option value="Harvested">Harvested</option>
-            </select>
-            <textarea
-              placeholder="Notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full p-2 border border-green-theme-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-theme-500"
-            />
-            <button
-              onClick={addPlant}
-              className="w-full bg-green-theme-500 text-white py-2 rounded-lg hover:bg-green-theme-600 transition duration-200"
-            >
-              Add Plant
-            </button>
-          </div>
-        </div>
-
-        {/* Plant List */}
         <div className="space-y-4">
           {plants.map((plant) => (
-            <div
-              key={plant.id}
-              className="bg-white p-6 rounded-lg shadow-md"
-            >
-              <h2 className="text-xl font-semibold text-green-theme-800">
-                {plant.name}
-              </h2>
-              <p className="text-green-theme-700">
-                <span className="font-medium">Strain:</span> {plant.strain}
-              </p>
-              <p className="text-green-theme-700">
-                <span className="font-medium">Planted on:</span> {plant.plantingDate}
-              </p>
-              <p className="text-green-theme-700">
-                <span className="font-medium">Stage:</span> {plant.stage}
-              </p>
-              <p className="text-green-theme-700">
-                <span className="font-medium">Notes:</span> {plant.notes}
-              </p>
+            <div key={plant._id} className="bg-white p-6 rounded shadow">
+              <h2 className="text-xl font-bold">{plant.name}</h2>
+              <p><strong>Strain:</strong> {plant.strain}</p>
+              <p><strong>Planted on:</strong> {plant.plantingDate}</p>
+              <p><strong>Stage:</strong> {plant.stage}</p>
+              <p><strong>Notes:</strong> {plant.notes}</p>
+              <div className="mt-4 flex space-x-2">
+                <button onClick={() => handleEdit(plant)} className="bg-blue-500 text-white p-2 rounded">Edit</button>
+                <button onClick={() => deletePlant(plant._id)} className="bg-red-500 text-white p-2 rounded">Delete</button>
+              </div>
             </div>
           ))}
         </div>
