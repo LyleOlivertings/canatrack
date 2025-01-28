@@ -1,15 +1,23 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    './pages/**/*.{js,ts,jsx,tsx}',
+    './components/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        'green-theme': {
+          100: '#E6F5E6',
+          200: '#C2EAC2',
+          300: '#9EDF9E',
+          400: '#7AD47A',
+          500: '#56C956', // Primary green
+          600: '#3DAF3D',
+          700: '#2E8B2E',
+          800: '#1F671F',
+          900: '#104310',
+        },
       },
     },
   },
