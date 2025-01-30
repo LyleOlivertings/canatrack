@@ -91,7 +91,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-green-100 p-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold mb-8">🌱 My Plants</h1>
         
         {/* Add/Edit Plant Form */}
@@ -136,95 +136,87 @@ export default function Home() {
           <button
             type="button"
             onClick={addOrUpdatePlant}
-            className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600"
+            className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600 transition-colors"
           >
             {editPlantId ? 'Update Plant' : 'Add Plant'}
           </button>
         </form>
 
-        {/* Plants List */}
-        <div className="space-y-4">
+        {/* Plants Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {plants.map((plant) => (
-            <div key={plant._id} className="bg-white p-6 rounded shadow">
+            <div key={plant._id} className="bg-white p-4 rounded-lg shadow-md flex flex-col">
               {/* Plant Details */}
-              <h2 className="text-xl font-bold">{plant.name}</h2>
-              <p><strong>Strain:</strong> {plant.strain}</p>
-              <p><strong>Planted on:</strong> {new Date(plant.plantingDate).toLocaleDateString()}</p>
-              <p><strong>Stage:</strong> {plant.stage}</p>
-              <p><strong>Notes:</strong> {plant.notes}</p>
-
-              {/* Timeline Section */}
-              <div className="mt-4 border-t pt-4">
-                <h3 className="text-lg font-semibold mb-4">Growth Timeline</h3>
-                
-                {/* Add Timeline Event */}
-                <div className="mb-6 bg-gray-50 p-4 rounded-lg">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block mb-2">Event Date</label>
-                      <DatePicker
-                        selected={timelineDate}
-                        onChange={date => setTimelineDate(date)}
-                        className="w-full p-2 border rounded"
-                      />
-                    </div>
-                    <div>
-                      <label className="block mb-2">Event Type</label>
-                      <input
-                        type="text"
-                        value={timelineEvent}
-                        onChange={e => setTimelineEvent(e.target.value)}
-                        className="w-full p-2 border rounded"
-                        placeholder="e.g., Watering, Pruning"
-                      />
-                    </div>
-                  </div>
-                  <textarea
-                    value={timelineNotes}
-                    onChange={e => setTimelineNotes(e.target.value)}
-                    className="w-full mt-4 p-2 border rounded"
-                    placeholder="Event notes"
-                    rows="2"
-                  />
-                  <button
-                    onClick={() => addTimelineEvent(plant._id)}
-                    className="mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                  >
-                    Add Timeline Event
-                  </button>
+              <div className="flex-1">
+                <h2 className="text-xl font-bold mb-2">{plant.name}</h2>
+                <div className="space-y-1 mb-4">
+                  <p><span className="font-semibold">Strain:</span> {plant.strain}</p>
+                  <p><span className="font-semibold">Planted:</span> {new Date(plant.plantingDate).toLocaleDateString()}</p>
+                  <p><span className="font-semibold">Stage:</span> {plant.stage}</p>
+                  {plant.notes && <p><span className="font-semibold">Notes:</span> {plant.notes}</p>}
                 </div>
 
-                {/* Display Timeline Events */}
-                <div className="space-y-4">
-                  {plant.timeline?.map((event, index) => (
-                    <div key={index} className="border-l-4 border-green-500 pl-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-semibold">{event.event}</h4>
-                          <p className="text-sm text-gray-600">
-                            {new Date(event.date).toLocaleDateString()}
-                          </p>
-                          {event.notes && <p className="mt-1 text-gray-700">{event.notes}</p>}
-                        </div>
+                {/* Timeline Section */}
+                <div className="mt-4 border-t pt-4">
+                  <h3 className="font-semibold mb-2">Growth Timeline</h3>
+                  
+                  {/* Timeline Input */}
+                  <div className="mb-4 bg-gray-50 p-3 rounded-lg">
+                    <DatePicker
+                      selected={timelineDate}
+                      onChange={date => setTimelineDate(date)}
+                      className="w-full mb-2 p-1 border rounded text-sm"
+                    />
+                    <input
+                      type="text"
+                      value={timelineEvent}
+                      onChange={e => setTimelineEvent(e.target.value)}
+                      placeholder="Event name"
+                      className="w-full mb-2 p-1 border rounded text-sm"
+                    />
+                    <textarea
+                      value={timelineNotes}
+                      onChange={e => setTimelineNotes(e.target.value)}
+                      placeholder="Event notes"
+                      className="w-full p-1 border rounded text-sm"
+                      rows="2"
+                    />
+                    <button
+                      onClick={() => addTimelineEvent(plant._id)}
+                      className="mt-2 bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition-colors"
+                    >
+                      Add Event
+                    </button>
+                  </div>
+
+                  {/* Timeline Events */}
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {plant.timeline?.map((event, index) => (
+                      <div key={index} className="border-l-2 border-green-500 pl-2 text-sm">
+                        <p className="font-medium">{event.event}</p>
+                        <p className="text-gray-600 text-xs">
+                          {new Date(event.date).toLocaleDateString()}
+                        </p>
+                        {event.notes && <p className="text-gray-700 text-xs mt-1">{event.notes}</p>}
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {/* Edit/Delete Buttons */}
-              <div className="mt-4 flex space-x-2">
-                <button 
-                  onClick={() => handleEdit(plant)} 
-                  className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+              {/* Action Buttons */}
+              <div className="mt-4 pt-4 border-t flex space-x-2">
+                <button
+                  onClick={() => handleEdit(plant)}
+                  className="flex-1 bg-blue-500 text-white px-3 py-2 rounded text-sm hover:bg-blue-600 transition-colors"
                 >
-                  Edit Plant
+                  Edit
                 </button>
-                <button 
-                  onClick={() => deletePlant(plant._id)} 
-                  className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
+                <button
+                  onClick={() => deletePlant(plant._id)}
+                  className="flex-1 bg-red-500 text-white px-3 py-2 rounded text-sm hover:bg-red-600 transition-colors"
                 >
-                  Delete Plant
+                  Delete
                 </button>
               </div>
             </div>
